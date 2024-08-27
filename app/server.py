@@ -1,7 +1,7 @@
 from sanic import Sanic
 from sanic.response import text
 import aiosqlite
-from config import Config
+from .config import Config
 
 def create_app(config=Config) -> Sanic:
     app = Sanic("MyHelloWorldApp", config())
