@@ -1,14 +1,11 @@
 from sanic import Sanic
 from sanic.response import text
-import aiosqlite
 from .config import Config
+from .listeners import setup_db
 
 def create_app(config=Config) -> Sanic:
     app = Sanic("MyHelloWorldApp", config())
-
-    @app.before_server_start
-    async def attach_db(app, loop):
-        app.ctx.db = await aiosqlite.connect(app.config.DB_PATH)
+    app.register_listener(setup_db, "before_server_start")
 
     @app.get("/")
     async def hello_world(request):
