@@ -11,3 +11,6 @@ class GameExecutor(SQLiteExecutor):
 
     async def insert_game(self, uuid: UUID, title: str, release_date: date, creation_datetime: datetime) -> GameSchema:
         ...
+    
+    async def select_game(self, uuid: UUID) -> GameSchema:
+        ...

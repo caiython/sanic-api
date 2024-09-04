@@ -1,12 +1,14 @@
 from sanic.request import Request
 from sanic.response import json
-from sanic.exceptions import InvalidUsage
+from sanic.exceptions import InvalidUsage, NotFound
 from sanic import Blueprint
 
 from app.executors import GameExecutor
 from app.schemas import GameSchema
 
 from pydantic import ValidationError
+from mayim.exception import RecordNotFound
+from uuid import UUID
 
 game_bp = Blueprint('Game', url_prefix='/game')
 
@@ -39,3 +41,17 @@ async def insert_game(request: Request, executor: GameExecutor) -> json:
     await executor.insert_game(**game.model_dump())
 
     return json(game.to_dict(), status=201)
+
+@game_bp.get('/<uuid>')
+async def select_game(request: Request, executor: GameExecutor, uuid: str) -> json:
+    try:
+        UUID(uuid)
+    except ValueError:
+        raise InvalidUsage('UUID must be in a valid format.')
+    
+    try:
+        game = await executor.select_game(uuid=uuid)
+    except RecordNotFound:
+        raise NotFound(f"Could not find game with uuid {uuid}")
+
+    return json(game.to_dict())
