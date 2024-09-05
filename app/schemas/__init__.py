@@ -1,1 +1,1 @@
-from .game import GameSchema
+from .game import GameSchema, GameUpdateSchema

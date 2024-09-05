@@ -1,7 +1,8 @@
 from mayim import SQLiteExecutor, query
-from app.schemas import GameSchema
+from app.schemas import GameSchema, GameUpdateSchema
 from datetime import date, datetime
 from uuid import UUID
+from mayim.exception import RecordNotFound
 
 
 class GameExecutor(SQLiteExecutor):
@@ -14,3 +15,29 @@ class GameExecutor(SQLiteExecutor):
     
     async def select_game(self, uuid: UUID) -> GameSchema:
         ...
+
+    async def update_game(self, uuid: UUID, game_update_data: GameUpdateSchema) -> GameSchema:
+        
+        fields_to_update = []
+        params = {"uuid": uuid}
+        
+        for field, value in game_update_data.model_dump(exclude_unset=True).items():
+            fields_to_update.append(f"{field} = ${field}")
+            params[field] = value
+
+        if not fields_to_update:
+            raise ValueError("No fields provided to update.")
+
+        set_clause = ", ".join(fields_to_update)
+        query = f"""
+            UPDATE app_game
+            SET {set_clause}
+            WHERE uuid = $uuid
+            RETURNING uuid, title, release_date, creation_datetime;
+        """
+
+        result = await self.execute(query, params=params)
+        if not result:
+            raise RecordNotFound(f"No game found with UUID {uuid}")
+
+        return GameSchema(**result.__dict__)

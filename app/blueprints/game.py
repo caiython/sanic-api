@@ -4,7 +4,7 @@ from sanic.exceptions import InvalidUsage, NotFound
 from sanic import Blueprint
 
 from app.executors import GameExecutor
-from app.schemas import GameSchema
+from app.schemas import GameSchema, GameUpdateSchema
 
 from pydantic import ValidationError
 from mayim.exception import RecordNotFound
@@ -55,3 +55,23 @@ async def select_game(request: Request, executor: GameExecutor, uuid: str) -> js
         raise NotFound(f"Could not find game with uuid {uuid}")
 
     return json(game.to_dict())
+
+@game_bp.patch('/<uuid>')
+async def update_game(request: Request, executor: GameExecutor, uuid: str) -> json:
+
+    if not request.json or not isinstance(request.json, dict):
+        raise InvalidUsage('Request body must be a valid JSON object.')
+
+    try:
+        UUID(uuid)
+    except ValueError:
+        raise InvalidUsage('UUID must be in a valid format.')
+    
+    try:
+        game_update_data = GameUpdateSchema(**request.json)
+    except ValidationError as e:
+        return json({'errors': e.errors()}, status=400)
+    
+    updated_game = await executor.update_game(uuid=uuid, game_update_data=game_update_data)
+
+    return json(updated_game.to_dict())

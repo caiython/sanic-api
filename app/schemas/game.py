@@ -1,5 +1,5 @@
 from pydantic import BaseModel, constr, Field
-from typing import Annotated
+from typing import Annotated, Optional
 from datetime import date, datetime
 from uuid import uuid4
 
@@ -14,3 +14,7 @@ class GameSchema(BaseModel):
         game_json['release_date'] = self.release_date.strftime('%Y-%m-%d')
         game_json['creation_datetime'] = self.creation_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')
         return game_json
+
+class GameUpdateSchema(BaseModel):
+    title: Optional[Annotated[str, constr(max_length=100)]] = None
+    release_date: Optional[date] = None
