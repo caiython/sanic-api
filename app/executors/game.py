@@ -41,3 +41,6 @@ class GameExecutor(SQLiteExecutor):
             raise RecordNotFound(f"No game found with UUID {uuid}")
 
         return GameSchema(**result.__dict__)
+
+    async def delete_game(self, uuid: UUID) -> GameSchema:
+        ...

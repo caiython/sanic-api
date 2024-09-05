@@ -75,3 +75,17 @@ async def update_game(request: Request, executor: GameExecutor, uuid: str) -> js
     updated_game = await executor.update_game(uuid=uuid, game_update_data=game_update_data)
 
     return json(updated_game.to_dict())
+
+@game_bp.delete('/<uuid>')
+async def delete_game(request: Request, executor: GameExecutor, uuid: str) -> json:
+    try:
+        UUID(uuid)
+    except ValueError:
+        raise InvalidUsage('UUID must be in a valid format.')
+
+    try:
+        await executor.delete_game(uuid=uuid)
+    except RecordNotFound:
+        raise NotFound(f"No game found with UUID {uuid}")
+
+    return json({}, status=204)
